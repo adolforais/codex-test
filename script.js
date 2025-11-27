@@ -1,4 +1,4 @@
-const mockData = [
+const fallbackData = [
   { date: '2024-01-12', close: 426.31 },
   { date: '2024-02-09', close: 433.85 },
   { date: '2024-03-08', close: 445.92 },
@@ -18,6 +18,29 @@ const mockData = [
   { date: '2025-05-09', close: 489.36 }
 ];
 
+const RANGE_WINDOWS = {
+  '1D': 1,
+  '5D': 5,
+  '1W': 7,
+  '1M': 30,
+  '3M': 90,
+  '6M': 180,
+  YTD: 'YTD',
+  '1Y': 365,
+  '5Y': 365 * 5,
+  ALL: 'ALL'
+};
+
+const DEFAULT_RANGE = '6M';
+const SYMBOL = 'VOO';
+
+let fullSeries = [];
+let filteredSeries = [];
+let allTimeHigh = null;
+let currentRange = DEFAULT_RANGE;
+
+const ns = 'http://www.w3.org/2000/svg';
+
 function formatCurrency(value) {
   return `$${value.toFixed(2)}`;
 }
@@ -27,28 +50,69 @@ function formatPercent(value) {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-function computeStats(prices) {
+function setStatus(message, tone = 'info') {
+  const status = document.getElementById('data-status');
+  status.textContent = message;
+  status.style.color = tone === 'error' ? 'var(--danger)' : 'var(--accent)';
+}
+
+function resolveApiKey() {
+  const params = new URLSearchParams(window.location.search);
+  const fromQuery = params.get('avkey');
+  if (fromQuery) {
+    localStorage.setItem('alphaVantageKey', fromQuery);
+  }
+  const stored = localStorage.getItem('alphaVantageKey');
+  return fromQuery || stored || window.ALPHA_VANTAGE_API_KEY || '';
+}
+
+function normalizeDailySeries(data) {
+  const series = data['Time Series (Daily)'];
+  if (!series) throw new Error('Unexpected Alpha Vantage shape');
+
+  return Object.entries(series)
+    .map(([date, values]) => ({
+      date,
+      close: parseFloat(values['4. close'])
+    }))
+    .filter((point) => !Number.isNaN(point.close))
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+
+async function fetchAlphaVantage(symbol, apiKey) {
+  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${symbol}&outputsize=full&apikey=${apiKey}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Network error');
+  const json = await response.json();
+  if (json['Note']) throw new Error('Alpha Vantage throttled');
+  if (json['Error Message']) throw new Error('Invalid API response');
+  return normalizeDailySeries(json);
+}
+
+function computeAth(series) {
+  const closes = series.map((p) => p.close);
+  const dates = series.map((p) => p.date);
+  const athValue = Math.max(...closes);
+  const athIndex = closes.indexOf(athValue);
+  return { value: athValue, date: dates[athIndex] };
+}
+
+function computeStats(prices, athReference) {
+  if (!prices.length) return null;
   const closes = prices.map((p) => p.close);
   const dates = prices.map((p) => p.date);
   const current = closes[closes.length - 1];
   const start = closes[0];
-  const athValue = Math.max(...closes);
-  const athIndex = closes.indexOf(athValue);
-  const athDate = dates[athIndex];
+  const athValue = athReference?.value ?? Math.max(...closes);
+  const athDate = athReference?.date ?? dates[closes.indexOf(athValue)];
   const drawdown = ((current - athValue) / athValue) * 100;
   const periodChange = ((current - start) / start) * 100;
 
-  return {
-    current,
-    start,
-    athValue,
-    athDate,
-    drawdown,
-    periodChange
-  };
+  return { current, start, athValue, athDate, drawdown, periodChange };
 }
 
 function renderStats(stats) {
+  if (!stats) return;
   const currentPriceEl = document.getElementById('current-price');
   const athPriceEl = document.getElementById('ath-price');
   const athDateEl = document.getElementById('ath-date');
@@ -64,22 +128,27 @@ function renderStats(stats) {
   periodChangeEl.style.color = stats.periodChange < 0 ? 'var(--danger)' : 'var(--accent)';
 }
 
-function renderList(stats) {
+function renderList(stats, prices) {
   const list = document.getElementById('stats-list');
-  const points = mockData.length;
-  const median = mockData.map((p) => p.close).sort((a, b) => a - b)[Math.floor(points / 2)];
-  const lastFive = mockData.slice(-5);
+  if (!stats || !prices.length) {
+    list.innerHTML = '<li>No data available.</li>';
+    return;
+  }
+  const points = prices.length;
+  const sorted = [...prices].map((p) => p.close).sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  const lastFive = prices.slice(-5);
   const avg5 = lastFive.reduce((sum, p) => sum + p.close, 0) / lastFive.length;
 
-  list.innerHTML = '';
   const items = [
-    `Data points tracked: ${points}`,
+    `Data points shown: ${points}`,
     `Median close: ${formatCurrency(median)}`,
     `5-sample average: ${formatCurrency(avg5)}`,
     `Distance to ATH: ${formatPercent(stats.drawdown)}`,
     `ATH recorded on ${stats.athDate}`
   ];
 
+  list.innerHTML = '';
   items.forEach((item) => {
     const li = document.createElement('li');
     li.textContent = item;
@@ -89,7 +158,6 @@ function renderList(stats) {
 
 function renderChart(prices) {
   const svg = document.getElementById('price-chart');
-  const ns = 'http://www.w3.org/2000/svg';
   const width = 960;
   const height = 360;
   const padding = 48;
@@ -97,6 +165,8 @@ function renderChart(prices) {
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  if (!prices.length) return;
 
   const closes = prices.map((p) => p.close);
   const min = Math.min(...closes);
@@ -133,7 +203,8 @@ function renderChart(prices) {
     .map((p, i) => `${xForIndex(i)},${yForValue(p.close)}`)
     .join(' ');
 
-  const areaD = `M ${padding} ${height - padding} L ${pointString} L ${padding + xStep * (prices.length - 1)} ${height - padding} Z`;
+  const lastX = padding + xStep * (prices.length - 1);
+  const areaD = `M ${padding} ${height - padding} L ${pointString} L ${lastX} ${height - padding} Z`;
   areaPath.setAttribute('d', areaD);
   areaPath.setAttribute('fill', 'url(#areaGradient)');
   areaPath.setAttribute('stroke', 'none');
@@ -194,16 +265,72 @@ function renderChart(prices) {
   svg.append(areaPath, linePath, axis, labels, dateLabels, lastPoint);
 }
 
-function init() {
-  const stats = computeStats(mockData);
-  renderStats(stats);
-  renderList(stats);
-  renderChart(mockData);
+function filterByRange(range, series) {
+  if (!series.length) return [];
+  const end = new Date(series[series.length - 1].date);
+  if (range === 'ALL') return [...series];
+  if (range === 'YTD') {
+    const start = new Date(end.getFullYear(), 0, 1);
+    return series.filter((p) => new Date(p.date) >= start);
+  }
+  const days = RANGE_WINDOWS[range] || RANGE_WINDOWS[DEFAULT_RANGE];
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+  return series.filter((p) => new Date(p.date) >= start);
+}
 
-  const rangeLabel = document.getElementById('range-label');
-  const firstDate = mockData[0].date;
-  const lastDate = mockData[mockData.length - 1].date;
-  rangeLabel.textContent = `${firstDate} → ${lastDate}`;
+function setRangeLabel(range, prices) {
+  const label = document.getElementById('range-label');
+  if (!prices.length) {
+    label.textContent = 'No data';
+    return;
+  }
+  const start = prices[0].date;
+  const end = prices[prices.length - 1].date;
+  const labelText = range === 'ALL' ? `All history → ${end}` : `${start} → ${end}`;
+  label.textContent = labelText;
+}
+
+function updateRange(range) {
+  currentRange = range;
+  filteredSeries = filterByRange(range, fullSeries);
+  const stats = computeStats(filteredSeries, allTimeHigh);
+  renderStats(stats);
+  renderList(stats, filteredSeries);
+  renderChart(filteredSeries);
+  setRangeLabel(range, filteredSeries);
+}
+
+function bindRangeSwitcher() {
+  const pills = document.querySelectorAll('.pill');
+  pills.forEach((pill) => {
+    pill.addEventListener('click', () => {
+      const range = pill.dataset.range;
+      pills.forEach((btn) => {
+        btn.classList.toggle('active', btn === pill);
+        btn.setAttribute('aria-selected', btn === pill ? 'true' : 'false');
+      });
+      updateRange(range);
+    });
+  });
+}
+
+async function init() {
+  const apiKey = resolveApiKey();
+  try {
+    if (!apiKey) throw new Error('Missing API key');
+    const liveSeries = await fetchAlphaVantage(SYMBOL, apiKey);
+    fullSeries = liveSeries;
+    setStatus('Alpha Vantage • live data');
+  } catch (err) {
+    console.error(err);
+    fullSeries = fallbackData;
+    setStatus('Sample data • add ?avkey=YOUR_KEY for live fetches', 'error');
+  }
+
+  allTimeHigh = computeAth(fullSeries);
+  bindRangeSwitcher();
+  updateRange(currentRange);
 }
 
 document.addEventListener('DOMContentLoaded', init);

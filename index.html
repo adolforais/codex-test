@@ -14,9 +14,9 @@
     <div>
       <p class="eyebrow">ETF tracker</p>
       <h1>VOO performance dashboard</h1>
-      <p class="lede">Monitor Vanguard S&P 500 ETF levels, drawdown from all-time high, and recent momentum.</p>
+      <p class="lede">Live pulls from Alpha Vantage to monitor Vanguard S&P 500 ETF levels, drawdown from all-time high, and recent momentum.</p>
     </div>
-    <div class="badge">Static sample data</div>
+    <div class="badge" id="data-status">Fetching from Alpha Vantage</div>
   </header>
 
   <main class="grid">
@@ -49,7 +49,21 @@
           <p class="eyebrow">Price action</p>
           <h2>Closing prices</h2>
         </div>
-        <div class="chip" id="range-label">Last 90 days</div>
+        <div class="controls">
+          <div class="range-switcher" role="tablist" aria-label="Range selector">
+            <button class="pill" data-range="1D" role="tab" aria-selected="false">1D</button>
+            <button class="pill" data-range="5D" role="tab" aria-selected="false">5D</button>
+            <button class="pill" data-range="1W" role="tab" aria-selected="false">1W</button>
+            <button class="pill" data-range="1M" role="tab" aria-selected="false">1M</button>
+            <button class="pill" data-range="3M" role="tab" aria-selected="false">3M</button>
+            <button class="pill active" data-range="6M" role="tab" aria-selected="true">6M</button>
+            <button class="pill" data-range="YTD" role="tab" aria-selected="false">YTD</button>
+            <button class="pill" data-range="1Y" role="tab" aria-selected="false">1Y</button>
+            <button class="pill" data-range="5Y" role="tab" aria-selected="false">5Y</button>
+            <button class="pill" data-range="ALL" role="tab" aria-selected="false">All</button>
+          </div>
+          <div class="chip" id="range-label">—</div>
+        </div>
       </div>
       <div class="chart-frame" aria-label="VOO price chart" role="img">
         <svg id="price-chart"></svg>
@@ -65,9 +79,8 @@
       </div>
       <div class="callout">
         <p class="eyebrow">How to read this</p>
-        <p class="lede">The drawdown shows how far the ETF is from its record close. A smaller negative value means the price is
-          near the high; a positive value indicates a new high.</p>
-        <p class="hint">Data shown here is sample data only; no external prices are fetched.</p>
+        <p class="lede">The drawdown shows how far the ETF is from its record close. A smaller negative value means the price is near the high; a positive value indicates a new high.</p>
+        <p class="hint">Data pulls use the Alpha Vantage Time Series API. When the API key is missing or rate-limited, the dashboard falls back to bundled sample data.</p>
       </div>
     </section>
   </main>
