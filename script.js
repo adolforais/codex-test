@@ -50,11 +50,7 @@ function renderNoData(message) {
 function resolveApiKey() {
   const params = new URLSearchParams(window.location.search);
   const fromQuery = params.get('avkey');
-  if (fromQuery) {
-    localStorage.setItem('alphaVantageKey', fromQuery);
-  }
-  const stored = localStorage.getItem('alphaVantageKey');
-  return fromQuery || stored || window.ALPHA_VANTAGE_API_KEY || '';
+  return fromQuery || window.ALPHA_VANTAGE_API_KEY || '';
 }
 
 function normalizeDailySeries(data) {
@@ -307,10 +303,10 @@ function bindRangeSwitcher() {
 }
 
 async function init() {
+  bindRangeSwitcher();
   const apiKey = resolveApiKey();
   if (!apiKey) {
-    renderNoData('API key missing • add ?avkey=YOUR_KEY');
-    bindRangeSwitcher();
+    renderNoData('API key not loaded • add ?avkey=YOUR_KEY');
     return;
   }
 
@@ -319,12 +315,10 @@ async function init() {
     fullSeries = liveSeries;
     allTimeHigh = computeAth(fullSeries);
     setStatus('Alpha Vantage • live data');
-    bindRangeSwitcher();
     updateRange(currentRange);
   } catch (err) {
     console.error(err);
     renderNoData('Could not load data with provided API key');
-    bindRangeSwitcher();
   }
 }
 
