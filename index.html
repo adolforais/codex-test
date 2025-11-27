@@ -14,9 +14,9 @@
     <div>
       <p class="eyebrow">ETF tracker</p>
       <h1>VOO performance dashboard</h1>
-      <p class="lede">Live pulls from Alpha Vantage to monitor Vanguard S&P 500 ETF levels, drawdown from all-time high, and recent momentum.</p>
+      <p class="lede">Live pulls from EOD Historical Data to monitor Vanguard S&P 500 ETF levels, drawdown from all-time high, and recent momentum.</p>
     </div>
-    <div class="badge" id="data-status">Fetching from Alpha Vantage</div>
+    <div class="badge" id="data-status">Fetching from EODHD</div>
   </header>
 
   <main class="grid">
@@ -59,8 +59,6 @@
             <button class="pill active" data-range="6M" role="tab" aria-selected="true">6M</button>
             <button class="pill" data-range="YTD" role="tab" aria-selected="false">YTD</button>
             <button class="pill" data-range="1Y" role="tab" aria-selected="false">1Y</button>
-            <button class="pill" data-range="5Y" role="tab" aria-selected="false">5Y</button>
-            <button class="pill" data-range="ALL" role="tab" aria-selected="false">All</button>
           </div>
           <div class="chip" id="range-label">—</div>
         </div>
@@ -80,7 +78,7 @@
       <div class="callout">
         <p class="eyebrow">How to read this</p>
         <p class="lede">The drawdown shows how far the ETF is from its record close. A smaller negative value means the price is near the high; a positive value indicates a new high.</p>
-        <p class="hint">Data pulls use the Alpha Vantage Time Series API. When the API key is missing or rate-limited, the dashboard falls back to bundled sample data.</p>
+        <p class="hint">Data pulls use the EOD Historical Data API. Add your key with <code>?avkey=YOUR_KEY</code>; when the key is missing or invalid, the dashboard will not load data.</p>
       </div>
     </section>
   </main>
