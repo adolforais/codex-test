@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VOO Performance Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">ETF tracker</p>
+      <h1>VOO performance dashboard</h1>
+      <p class="lede">Live pulls from Alpha Vantage to monitor Vanguard S&P 500 ETF levels, drawdown from all-time high, and recent
+        momentum.</p>
+    </div>
+    <div class="badge" id="data-status">Fetching from Alpha Vantage</div>
+  </header>
+
+  <main class="grid">
+    <section class="summary">
+      <div class="card highlight">
+        <p class="label">Current price</p>
+        <p class="value" id="current-price">$—</p>
+        <p class="hint">Latest close</p>
+      </div>
+      <div class="card">
+        <p class="label">All-time high</p>
+        <p class="value" id="ath-price">$—</p>
+        <p class="hint" id="ath-date">—</p>
+      </div>
+      <div class="card">
+        <p class="label">Off the high</p>
+        <p class="value" id="drawdown">—%</p>
+        <p class="hint">Percent from ATH</p>
+      </div>
+      <div class="card">
+        <p class="label">Change vs. start</p>
+        <p class="value" id="period-change">—%</p>
+        <p class="hint">From first point</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Price action</p>
+          <h2>Closing prices</h2>
+        </div>
+        <div class="controls">
+          <div class="range-switcher" role="tablist" aria-label="Range selector">
+            <button class="pill" data-range="1D" role="tab" aria-selected="false">1D</button>
+            <button class="pill" data-range="5D" role="tab" aria-selected="false">5D</button>
+            <button class="pill" data-range="1W" role="tab" aria-selected="false">1W</button>
+            <button class="pill" data-range="1M" role="tab" aria-selected="false">1M</button>
+            <button class="pill" data-range="3M" role="tab" aria-selected="false">3M</button>
+            <button class="pill active" data-range="6M" role="tab" aria-selected="true">6M</button>
+            <button class="pill" data-range="YTD" role="tab" aria-selected="false">YTD</button>
+            <button class="pill" data-range="1Y" role="tab" aria-selected="false">1Y</button>
+            <button class="pill" data-range="5Y" role="tab" aria-selected="false">5Y</button>
+            <button class="pill" data-range="ALL" role="tab" aria-selected="false">All</button>
+          </div>
+          <div class="chip" id="range-label">—</div>
+        </div>
+      </div>
+      <div class="chart-frame" aria-label="VOO price chart" role="img">
+        <svg id="price-chart"></svg>
+      </div>
+    </section>
+
+    <section class="panel split">
+      <div>
+        <p class="eyebrow">Key stats</p>
+        <ul class="list" id="stats-list">
+          <li>Loading...</li>
+        </ul>
+      </div>
+      <div class="callout">
+        <p class="eyebrow">How to read this</p>
+        <p class="lede">The drawdown shows how far the ETF is from its record close. A smaller negative value means the price is
+          near the high; a positive value indicates a new high.</p>
+        <p class="hint">Data pulls use the Alpha Vantage Time Series API. When the API key is missing or rate-limited, the dashboard
+          falls back to bundled sample data.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
