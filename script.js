@@ -6,13 +6,11 @@ const RANGE_WINDOWS = {
   '3M': 90,
   '6M': 180,
   YTD: 'YTD',
-  '1Y': 365,
-  '5Y': 365 * 5,
-  ALL: 'ALL'
+  '1Y': 365
 };
 
 const DEFAULT_RANGE = '6M';
-const SYMBOL = 'VOO';
+const SYMBOL = 'VOO.US';
 
 let fullSeries = [];
 let filteredSeries = [];
@@ -50,29 +48,28 @@ function renderNoData(message) {
 function resolveApiKey() {
   const params = new URLSearchParams(window.location.search);
   const fromQuery = params.get('avkey');
-  return fromQuery || window.ALPHA_VANTAGE_API_KEY || '';
+  const fromGlobal = window.EODHD_API_KEY || window.ALPHA_VANTAGE_API_KEY;
+  return fromQuery || fromGlobal || '';
 }
 
 function normalizeDailySeries(data) {
-  const series = data['Time Series (Daily)'];
-  if (!series) throw new Error('Unexpected Alpha Vantage shape');
+  if (!Array.isArray(data)) throw new Error('Unexpected EODHD shape');
 
-  return Object.entries(series)
-    .map(([date, values]) => ({
-      date,
-      close: parseFloat(values['4. close'])
+  return data
+    .map((point) => ({
+      date: point.date,
+      close: parseFloat(point.close)
     }))
-    .filter((point) => !Number.isNaN(point.close))
+    .filter((point) => point.date && !Number.isNaN(point.close))
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 }
 
-async function fetchAlphaVantage(symbol, apiKey) {
-  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${symbol}&outputsize=full&apikey=${apiKey}`;
+async function fetchEodhd(symbol, apiKey) {
+  const url = `https://eodhd.com/api/eod/${symbol}?api_token=${apiKey}&fmt=json`;
   const response = await fetch(url);
   if (!response.ok) throw new Error('Network error');
   const json = await response.json();
-  if (json['Note']) throw new Error('Alpha Vantage throttled');
-  if (json['Error Message']) throw new Error('Invalid API response');
+  if (json?.error) throw new Error('Invalid API response');
   return normalizeDailySeries(json);
 }
 
@@ -255,7 +252,6 @@ function renderChart(prices) {
 function filterByRange(range, series) {
   if (!series.length) return [];
   const end = new Date(series[series.length - 1].date);
-  if (range === 'ALL') return [...series];
   if (range === 'YTD') {
     const start = new Date(end.getFullYear(), 0, 1);
     return series.filter((p) => new Date(p.date) >= start);
@@ -274,8 +270,7 @@ function setRangeLabel(range, prices) {
   }
   const start = prices[0].date;
   const end = prices[prices.length - 1].date;
-  const labelText = range === 'ALL' ? `All history → ${end}` : `${start} → ${end}`;
-  label.textContent = labelText;
+  label.textContent = `${start} → ${end}`;
 }
 
 function updateRange(range) {
@@ -311,10 +306,10 @@ async function init() {
   }
 
   try {
-    const liveSeries = await fetchAlphaVantage(SYMBOL, apiKey);
+    const liveSeries = await fetchEodhd(SYMBOL, apiKey);
     fullSeries = liveSeries;
     allTimeHigh = computeAth(fullSeries);
-    setStatus('Alpha Vantage • live data');
+    setStatus('EODHD • live data');
     updateRange(currentRange);
   } catch (err) {
     console.error(err);
