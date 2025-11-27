@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Responsive Tabs Landing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div>
+        <p class="eyebrow">Brightline Studio</p>
+        <p class="headline">Responsive experience, modern polish.</p>
+      </div>
+    </div>
+    <button class="cta">Book a demo</button>
+  </header>
+
+  <main class="layout">
+    <nav class="tab-rail" aria-label="Primary sections">
+      <button class="tab active" data-tab-target="overview">Overview</button>
+      <button class="tab" data-tab-target="workflow">Workflow</button>
+      <button class="tab" data-tab-target="insights">Insights</button>
+      <button class="tab" data-tab-target="support">Support</button>
+    </nav>
+
+    <section class="content" aria-live="polite">
+      <div class="mobile-tab-bar" role="tablist" aria-label="Primary sections">
+        <button class="mobile-tab active" data-tab-target="overview">Overview</button>
+        <button class="mobile-tab" data-tab-target="workflow">Workflow</button>
+        <button class="mobile-tab" data-tab-target="insights">Insights</button>
+        <button class="mobile-tab" data-tab-target="support">Support</button>
+      </div>
+
+      <article class="panel active" id="overview" role="tabpanel" aria-labelledby="Overview">
+        <div class="panel-grid">
+          <div>
+            <p class="eyebrow">Adaptive design</p>
+            <h1>Elegant experiences on every screen.</h1>
+            <p class="lede">Deliver clarity with a responsive layout that makes navigation effortless. Tabs stay handy on larger screens and tuck away for mobile with a single tap.</p>
+            <div class="chips">
+              <span class="chip">Design systems</span>
+              <span class="chip">Performance</span>
+              <span class="chip">Accessibility</span>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Highlights</h2>
+            <ul class="list">
+              <li>Instant tab switching with smooth transitions.</li>
+              <li>Mobile-first controls with thumb-friendly spacing.</li>
+              <li>Polished gradients, soft shadows, and balanced typography.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" id="workflow" role="tabpanel" aria-labelledby="Workflow">
+        <div class="panel-grid">
+          <div class="card stack">
+            <div class="pill">Process</div>
+            <h2>Purpose-built steps</h2>
+            <p>From discovery to delivery, each milestone is captured with a visual cue and succinct next steps.</p>
+            <ol class="timeline">
+              <li><strong>Discovery</strong><span>Map the goals and success metrics.</span></li>
+              <li><strong>Design</strong><span>Prototype flows with left-rail navigation for clarity.</span></li>
+              <li><strong>Refine</strong><span>Optimize for speed, contrast, and accessibility.</span></li>
+              <li><strong>Launch</strong><span>Monitor, learn, and iterate quickly.</span></li>
+            </ol>
+          </div>
+          <div class="card callout">
+            <p class="eyebrow">Micro-interactions</p>
+            <h2>Responsive hover & tap states</h2>
+            <p>Each control provides immediate feedback. The tabs subtly lift on hover and pulse on focus to reinforce action.</p>
+            <div class="stats">
+              <div>
+                <p class="stat">120ms</p>
+                <p class="caption">Interaction speed</p>
+              </div>
+              <div>
+                <p class="stat">98%</p>
+                <p class="caption">Mobile usability score</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" id="insights" role="tabpanel" aria-labelledby="Insights">
+        <div class="panel-grid">
+          <div class="card stack">
+            <div class="pill">Analytics</div>
+            <h2>Clarity at a glance</h2>
+            <p>Highlight the metrics that matter with a clean grid, layered gradients, and contextual hints.</p>
+            <div class="metrics">
+              <div class="metric">
+                <p class="label">Engagement</p>
+                <div class="bar">
+                  <span style="width: 86%"></span>
+                </div>
+                <p class="value">+18% vs. last week</p>
+              </div>
+              <div class="metric">
+                <p class="label">Conversion</p>
+                <div class="bar">
+                  <span style="width: 72%"></span>
+                </div>
+                <p class="value">+9% uplift</p>
+              </div>
+              <div class="metric">
+                <p class="label">Retention</p>
+                <div class="bar">
+                  <span style="width: 64%"></span>
+                </div>
+                <p class="value">2.3x improvement</p>
+              </div>
+            </div>
+          </div>
+          <div class="card callout">
+            <p class="eyebrow">Adaptive layout</p>
+            <h2>Tabs that travel well</h2>
+            <p>On wider viewports, the left rail anchors navigation. On mobile, it transforms into a compact top bar so your content stays centered.</p>
+            <div class="hint">
+              <span class="dot" aria-hidden="true"></span>
+              <p>Resize the viewport or open on your phone to see the experience adjust automatically.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" id="support" role="tabpanel" aria-labelledby="Support">
+        <div class="panel-grid">
+          <div class="card stack">
+            <div class="pill">Confidence</div>
+            <h2>Guidance when you need it</h2>
+            <p>Built-in FAQs and live support keep your audience moving. Pair it with contextual tips for a frictionless journey.</p>
+            <div class="faq">
+              <details open>
+                <summary>How do the tabs behave on mobile?</summary>
+                <p>The rail hides automatically and a streamlined top bar appears so navigation remains within reach.</p>
+              </details>
+              <details>
+                <summary>Can I customize the palette?</summary>
+                <p>Yes — adjust the CSS variables for instant updates to color, spacing, and radius.</p>
+              </details>
+              <details>
+                <summary>Is the layout accessible?</summary>
+                <p>Keyboard focus states, aria labels, and polite announcements help every visitor stay oriented.</p>
+              </details>
+            </div>
+          </div>
+          <div class="card callout">
+            <p class="eyebrow">Contact</p>
+            <h2>Ready to collaborate?</h2>
+            <p>We respond within one business day. Share your goals and we will craft the ideal flow.</p>
+            <form class="form" action="#">
+              <label>
+                <span>Name</span>
+                <input type="text" name="name" placeholder="Alex Rivera" required />
+              </label>
+              <label>
+                <span>Email</span>
+                <input type="email" name="email" placeholder="you@example.com" required />
+              </label>
+              <button type="submit">Send a note</button>
+            </form>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
