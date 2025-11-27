@@ -1,23 +1,3 @@
-const fallbackData = [
-  { date: '2024-01-12', close: 426.31 },
-  { date: '2024-02-09', close: 433.85 },
-  { date: '2024-03-08', close: 445.92 },
-  { date: '2024-04-12', close: 456.17 },
-  { date: '2024-05-10', close: 468.42 },
-  { date: '2024-06-14', close: 479.63 },
-  { date: '2024-07-12', close: 482.18 },
-  { date: '2024-08-09', close: 474.02 },
-  { date: '2024-09-13', close: 468.11 },
-  { date: '2024-10-11', close: 461.44 },
-  { date: '2024-11-08', close: 469.32 },
-  { date: '2024-12-13', close: 477.89 },
-  { date: '2025-01-10', close: 484.15 },
-  { date: '2025-02-07', close: 492.88 },
-  { date: '2025-03-07', close: 503.44 },
-  { date: '2025-04-11', close: 497.72 },
-  { date: '2025-05-09', close: 489.36 }
-];
-
 const RANGE_WINDOWS = {
   '1D': 1,
   '5D': 5,
@@ -56,14 +36,21 @@ function setStatus(message, tone = 'info') {
   status.style.color = tone === 'error' ? 'var(--danger)' : 'var(--accent)';
 }
 
+function renderNoData(message) {
+  setStatus(message, 'error');
+  fullSeries = [];
+  filteredSeries = [];
+  const list = document.getElementById('stats-list');
+  list.innerHTML = `<li>${message}</li>`;
+  renderStats(null);
+  renderChart([]);
+  setRangeLabel(currentRange, []);
+}
+
 function resolveApiKey() {
   const params = new URLSearchParams(window.location.search);
   const fromQuery = params.get('avkey');
-  if (fromQuery) {
-    localStorage.setItem('alphaVantageKey', fromQuery);
-  }
-  const stored = localStorage.getItem('alphaVantageKey');
-  return fromQuery || stored || window.ALPHA_VANTAGE_API_KEY || '';
+  return fromQuery || window.ALPHA_VANTAGE_API_KEY || '';
 }
 
 function normalizeDailySeries(data) {
@@ -316,21 +303,23 @@ function bindRangeSwitcher() {
 }
 
 async function init() {
+  bindRangeSwitcher();
   const apiKey = resolveApiKey();
-  try {
-    if (!apiKey) throw new Error('Missing API key');
-    const liveSeries = await fetchAlphaVantage(SYMBOL, apiKey);
-    fullSeries = liveSeries;
-    setStatus('Alpha Vantage • live data');
-  } catch (err) {
-    console.error(err);
-    fullSeries = fallbackData;
-    setStatus('Sample data • add ?avkey=YOUR_KEY for live fetches', 'error');
+  if (!apiKey) {
+    renderNoData('API key not loaded • add ?avkey=YOUR_KEY');
+    return;
   }
 
-  allTimeHigh = computeAth(fullSeries);
-  bindRangeSwitcher();
-  updateRange(currentRange);
+  try {
+    const liveSeries = await fetchAlphaVantage(SYMBOL, apiKey);
+    fullSeries = liveSeries;
+    allTimeHigh = computeAth(fullSeries);
+    setStatus('Alpha Vantage • live data');
+    updateRange(currentRange);
+  } catch (err) {
+    console.error(err);
+    renderNoData('Could not load data with provided API key');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
