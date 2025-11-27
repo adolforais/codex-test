@@ -114,7 +114,7 @@ function renderChart(prices) {
     options: {
       animation: false,
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
       scales: {
         x: {
           grid: { color: 'rgba(148, 163, 184, 0.15)' },
